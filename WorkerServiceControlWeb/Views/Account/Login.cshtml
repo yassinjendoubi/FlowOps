@@ -1,0 +1,159 @@
+@{
+    Layout = null;
+    var returnUrl = ViewBag.ReturnUrl as string;
+    var error = ViewBag.Error as string;
+}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Connexion sécurisée au centre de supervision FlowOps." />
+    <title>Connexion — FlowOps</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <script>
+        (function () {
+            var saved = localStorage.getItem('theme');
+            var theme = saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+            document.documentElement.setAttribute('data-theme', theme);
+        })();
+    </script>
+</head>
+<body class="login-body auth-page">
+    <main class="auth-shell">
+        <section class="auth-showcase" aria-labelledby="authShowcaseTitle">
+            <div class="auth-showcase-inner">
+                <div class="auth-brand" aria-label="FlowOps — Centre de supervision">
+                    <span class="auth-brand-mark" aria-hidden="true">
+                        <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M8 9.5h16M8 16h10M8 22.5h16" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" />
+                            <circle cx="23" cy="16" r="3" fill="currentColor" />
+                        </svg>
+                    </span>
+                    <span class="auth-brand-copy">
+                        <strong class="auth-brand-name">FlowOps</strong>
+                        <span class="auth-brand-tagline">Centre de supervision</span>
+                    </span>
+                </div>
+
+                <div class="auth-showcase-content">
+                    <p class="auth-kicker">Exploitation maîtrisée</p>
+                    <h1 id="authShowcaseTitle" class="auth-showcase-title">Gardez chaque service sous contrôle.</h1>
+                    <p class="auth-showcase-copy">
+                        Une console claire pour superviser vos workers, intervenir rapidement et suivre chaque exécution au même endroit.
+                    </p>
+
+                    <ul class="auth-benefit-list" aria-label="Points forts de FlowOps">
+                        <li class="auth-benefit-item">
+                            <span class="auth-benefit-icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M4 5h16v14H4zM8 9h8M8 13h5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
+                                </svg>
+                            </span>
+                            <span class="auth-benefit-text">
+                                <strong>Vue unifiée</strong>
+                                <span>Retrouvez l’état de vos services dans une interface structurée.</span>
+                            </span>
+                        </li>
+                        <li class="auth-benefit-item">
+                            <span class="auth-benefit-icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M12 3l8 4v5c0 4.7-3.2 7.5-8 9-4.8-1.5-8-4.3-8-9V7l8-4z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" />
+                                    <path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
+                                </svg>
+                            </span>
+                            <span class="auth-benefit-text">
+                                <strong>Actions sécurisées</strong>
+                                <span>Démarrez, arrêtez et administrez selon votre niveau d’accès.</span>
+                            </span>
+                        </li>
+                        <li class="auth-benefit-item">
+                            <span class="auth-benefit-icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M5 5h14v14H5zM8 9l2 2-2 2M12 13h4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
+                                </svg>
+                            </span>
+                            <span class="auth-benefit-text">
+                                <strong>Journaux en direct</strong>
+                                <span>Suivez les événements utiles sans quitter votre espace de travail.</span>
+                            </span>
+                        </li>
+                    </ul>
+                </div>
+
+                <p class="auth-showcase-footer">Conçu pour les équipes qui veillent sur les opérations.</p>
+            </div>
+        </section>
+
+        <section class="auth-panel" aria-labelledby="loginTitle">
+            <div class="auth-card">
+                <header class="auth-card-header">
+                    <span class="auth-card-eyebrow">Accès sécurisé</span>
+                    <h2 id="loginTitle" class="auth-card-title">Bienvenue sur FlowOps</h2>
+                    <p class="auth-card-copy">Identifiez-vous pour accéder à votre centre de supervision.</p>
+                </header>
+
+                @if (!string.IsNullOrEmpty(error))
+                {
+                    <div class="form-alert form-alert-danger" role="alert">
+                        <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.7" />
+                            <path d="M12 8v5M12 16.5h.01" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
+                        </svg>
+                        <span>@error</span>
+                    </div>
+                }
+
+                <form method="post" asp-controller="Account" asp-action="Login" class="auth-form">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="returnUrl" value="@returnUrl" />
+
+                    <div class="form-field">
+                        <label class="form-label" for="loginUsername">Nom d’utilisateur</label>
+                        <input type="text"
+                               id="loginUsername"
+                               name="username"
+                               class="form-control"
+                               autocomplete="username"
+                               autocapitalize="none"
+                               spellcheck="false"
+                               required
+                               autofocus />
+                    </div>
+
+                    <div class="form-field">
+                        <label class="form-label" for="loginPassword">Mot de passe</label>
+                        <input type="password"
+                               id="loginPassword"
+                               name="password"
+                               class="form-control"
+                               autocomplete="current-password"
+                               required />
+                    </div>
+
+                    <button type="submit" class="btn-app-primary auth-submit">
+                        <span>Se connecter</span>
+                        <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M5 12h14M14 7l5 5-5 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                    </button>
+                </form>
+
+                <div class="auth-security-note">
+                    <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="5" y="10" width="14" height="10" rx="2" stroke="currentColor" stroke-width="1.6" />
+                        <path d="M8 10V7a4 4 0 0 1 8 0v3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+                    </svg>
+                    <span>Votre session est protégée et limitée dans le temps.</span>
+                </div>
+
+                <p class="auth-card-footer">
+                    Première connexion ?
+                    <a class="auth-text-link" asp-controller="Account" asp-action="Register">Créer un compte</a>
+                </p>
+            </div>
+        </section>
+    </main>
+</body>
+</html>

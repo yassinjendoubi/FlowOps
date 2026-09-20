@@ -1,0 +1,185 @@
+@{
+    Layout = null;
+    var error = ViewBag.Error as string;
+}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Création d’un compte pour le centre de supervision FlowOps." />
+    <title>Créer un compte — FlowOps</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <script>
+        (function () {
+            var saved = localStorage.getItem('theme');
+            var theme = saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+            document.documentElement.setAttribute('data-theme', theme);
+        })();
+    </script>
+</head>
+<body class="login-body auth-page auth-page-register">
+    <main class="auth-shell">
+        <section class="auth-showcase" aria-labelledby="authShowcaseTitle">
+            <div class="auth-showcase-inner">
+                <div class="auth-brand" aria-label="FlowOps — Centre de supervision">
+                    <span class="auth-brand-mark" aria-hidden="true">
+                        <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M8 9.5h16M8 16h10M8 22.5h16" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" />
+                            <circle cx="23" cy="16" r="3" fill="currentColor" />
+                        </svg>
+                    </span>
+                    <span class="auth-brand-copy">
+                        <strong class="auth-brand-name">FlowOps</strong>
+                        <span class="auth-brand-tagline">Centre de supervision</span>
+                    </span>
+                </div>
+
+                <div class="auth-showcase-content">
+                    <p class="auth-kicker">Votre espace opérationnel</p>
+                    <h1 id="authShowcaseTitle" class="auth-showcase-title">Rejoignez une supervision plus lisible.</h1>
+                    <p class="auth-showcase-copy">
+                        Créez votre accès pour centraliser le pilotage des services, leurs journaux et les fichiers associés.
+                    </p>
+
+                    <ul class="auth-benefit-list" aria-label="Ce que votre compte vous permet de faire">
+                        <li class="auth-benefit-item">
+                            <span class="auth-benefit-icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M4 5h16v14H4zM8 9h8M8 13h5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
+                                </svg>
+                            </span>
+                            <span class="auth-benefit-text">
+                                <strong>Superviser</strong>
+                                <span>Consultez l’état de chaque worker depuis une vue cohérente.</span>
+                            </span>
+                        </li>
+                        <li class="auth-benefit-item">
+                            <span class="auth-benefit-icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M8 5l9 7-9 7V5z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" />
+                                </svg>
+                            </span>
+                            <span class="auth-benefit-text">
+                                <strong>Intervenir</strong>
+                                <span>Lancez ou arrêtez un service avec un retour immédiat.</span>
+                            </span>
+                        </li>
+                        <li class="auth-benefit-item">
+                            <span class="auth-benefit-icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" />
+                                </svg>
+                            </span>
+                            <span class="auth-benefit-text">
+                                <strong>Explorer</strong>
+                                <span>Accédez aux fichiers de service utiles à vos vérifications.</span>
+                            </span>
+                        </li>
+                    </ul>
+                </div>
+
+                <p class="auth-showcase-footer">Un accès nominatif pour une expérience adaptée à votre rôle.</p>
+            </div>
+        </section>
+
+        <section class="auth-panel" aria-labelledby="registerTitle">
+            <div class="auth-card auth-card-register">
+                <header class="auth-card-header">
+                    <span class="auth-card-eyebrow">Nouvel accès</span>
+                    <h2 id="registerTitle" class="auth-card-title">Créer votre compte</h2>
+                    <p class="auth-card-copy">Renseignez vos informations pour rejoindre FlowOps.</p>
+                </header>
+
+                @if (!string.IsNullOrEmpty(error))
+                {
+                    <div class="form-alert form-alert-danger" role="alert">
+                        <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.7" />
+                            <path d="M12 8v5M12 16.5h.01" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
+                        </svg>
+                        <span>@error</span>
+                    </div>
+                }
+
+                <form method="post" asp-controller="Account" asp-action="Register" class="auth-form">
+                    @Html.AntiForgeryToken()
+
+                    <div class="auth-form-grid">
+                        <div class="form-field">
+                            <label class="form-label" for="registerUsername">Nom d’utilisateur</label>
+                            <input type="text"
+                                   id="registerUsername"
+                                   name="username"
+                                   class="form-control"
+                                   autocomplete="username"
+                                   autocapitalize="none"
+                                   spellcheck="false"
+                                   required
+                                   autofocus />
+                        </div>
+
+                        <div class="form-field">
+                            <label class="form-label" for="registerDisplayName">Nom affiché</label>
+                            <input type="text"
+                                   id="registerDisplayName"
+                                   name="displayName"
+                                   class="form-control"
+                                   autocomplete="name"
+                                   placeholder="Ex. Jean Dupont" />
+                        </div>
+
+                        <div class="form-field auth-form-grid-wide">
+                            <label class="form-label" for="registerJobTitle">Fonction <span class="form-label-optional">Optionnel</span></label>
+                            <input type="text"
+                                   id="registerJobTitle"
+                                   name="jobTitle"
+                                   class="form-control"
+                                   autocomplete="organization-title"
+                                   placeholder="Ex. Responsable IT" />
+                        </div>
+
+                        <div class="form-field">
+                            <label class="form-label" for="registerPassword">Mot de passe</label>
+                            <input type="password"
+                                   id="registerPassword"
+                                   name="password"
+                                   class="form-control"
+                                   autocomplete="new-password"
+                                   aria-describedby="passwordHint"
+                                   required
+                                   minlength="6" />
+                        </div>
+
+                        <div class="form-field">
+                            <label class="form-label" for="registerConfirmPassword">Confirmation</label>
+                            <input type="password"
+                                   id="registerConfirmPassword"
+                                   name="confirmPassword"
+                                   class="form-control"
+                                   autocomplete="new-password"
+                                   required
+                                   minlength="6" />
+                        </div>
+                    </div>
+
+                    <p id="passwordHint" class="form-hint">Utilisez au minimum 6 caractères.</p>
+
+                    <button type="submit" class="btn-app-primary auth-submit">
+                        <span>Créer mon compte</span>
+                        <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M5 12h14M14 7l5 5-5 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                    </button>
+                </form>
+
+                <p class="auth-card-footer">
+                    Vous avez déjà un compte ?
+                    <a class="auth-text-link" asp-controller="Account" asp-action="Login">Se connecter</a>
+                </p>
+            </div>
+        </section>
+    </main>
+</body>
+</html>

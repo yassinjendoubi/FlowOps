@@ -1,0 +1,101 @@
+@{
+    ViewData["Title"] = "Confidentialité et sécurité";
+}
+
+<div class="app-shell privacy-page">
+    <nav class="page-breadcrumb" aria-label="Fil d’Ariane">
+        <a class="back-link" asp-controller="Worker" asp-action="Index">
+            <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+            <span>Centre de supervision</span>
+        </a>
+    </nav>
+
+    <header class="page-header privacy-header">
+        <p class="page-eyebrow">Confiance et gouvernance</p>
+        <h1>Confidentialité et sécurité</h1>
+        <p>Comprendre les informations utilisées par FlowOps et adopter les bons réflexes pour protéger votre espace de supervision.</p>
+    </header>
+
+    <section class="surface-card privacy-intro-card" aria-labelledby="privacyCommitmentTitle">
+        <span class="privacy-intro-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 3l8 4v5c0 4.7-3.2 7.5-8 9-4.8-1.5-8-4.3-8-9V7l8-4z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" />
+                <path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+        </span>
+        <div>
+            <p class="panel-eyebrow">Notre approche</p>
+            <h2 id="privacyCommitmentTitle">Des données limitées au fonctionnement de la console</h2>
+            <p>FlowOps utilise les informations nécessaires à l’authentification, à la personnalisation de l’interface et à la supervision des services enregistrés.</p>
+        </div>
+    </section>
+
+    <div class="privacy-content-layout">
+        <div class="privacy-main-content">
+            <section class="surface-card privacy-section" aria-labelledby="accountDataTitle">
+                <span class="privacy-section-number" aria-hidden="true">01</span>
+                <div>
+                    <h2 id="accountDataTitle">Informations de compte</h2>
+                    <p>Votre compte peut inclure un nom d’utilisateur, un nom affiché, une fonction, un rôle d’accès et une date d’inscription. Ces informations servent à vous identifier et à adapter les fonctionnalités disponibles.</p>
+                    <ul class="privacy-list">
+                        <li>Le mot de passe est utilisé uniquement pour vérifier votre identité.</li>
+                        <li>Le rôle détermine l’accès aux fonctions d’administration.</li>
+                        <li>Les informations de profil sont visibles dans votre espace personnel.</li>
+                    </ul>
+                </div>
+            </section>
+
+            <section class="surface-card privacy-section" aria-labelledby="technicalDataTitle">
+                <span class="privacy-section-number" aria-hidden="true">02</span>
+                <div>
+                    <h2 id="technicalDataTitle">Informations techniques</h2>
+                    <p>La console affiche les services enregistrés, leur état, leurs journaux d’exécution et les fichiers accessibles via l’explorateur intégré. Ces éléments sont utilisés pour le suivi opérationnel.</p>
+                    <ul class="privacy-list">
+                        <li>Les journaux peuvent contenir des informations produites par les services supervisés.</li>
+                        <li>Les chemins et fichiers visibles dépendent de la configuration du déploiement.</li>
+                        <li>Les durées de conservation et les sauvegardes relèvent des règles définies par votre organisation.</li>
+                    </ul>
+                </div>
+            </section>
+
+            <section class="surface-card privacy-section" aria-labelledby="accessSecurityTitle">
+                <span class="privacy-section-number" aria-hidden="true">03</span>
+                <div>
+                    <h2 id="accessSecurityTitle">Protection des accès</h2>
+                    <p>Chaque session est associée à un compte authentifié. Certaines actions, notamment la gestion des utilisateurs et la suppression de services, sont réservées aux administrateurs.</p>
+                    <ul class="privacy-list">
+                        <li>Utilisez un mot de passe propre à ce compte et difficile à deviner.</li>
+                        <li>Ne partagez pas votre session ni vos identifiants.</li>
+                        <li>Déconnectez-vous lorsque vous quittez un poste partagé.</li>
+                    </ul>
+                </div>
+            </section>
+        </div>
+
+        <aside class="privacy-side-content" aria-label="Actions et repères">
+            <section class="surface-card privacy-action-card">
+                <p class="panel-eyebrow">Vos informations</p>
+                <h2>Vérifier votre profil</h2>
+                <p>Consultez les informations actuellement associées à votre session FlowOps.</p>
+                <a class="secondary-action" asp-controller="Account" asp-action="Profile">Ouvrir mon profil</a>
+            </section>
+
+            <section class="surface-card privacy-note-card">
+                <span class="privacy-note-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.7" />
+                        <path d="M12 11v5M12 8h.01" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
+                    </svg>
+                </span>
+                <div>
+                    <h2>Une question sur vos accès ?</h2>
+                    <p>Adressez-vous à un administrateur FlowOps de votre organisation pour toute demande de modification ou de suppression.</p>
+                </div>
+            </section>
+
+            <p class="privacy-version">Politique d’information — juillet 2026</p>
+        </aside>
+    </div>
+</div>

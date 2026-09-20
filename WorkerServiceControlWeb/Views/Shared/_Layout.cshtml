@@ -1,0 +1,385 @@
+@inject WorkerServiceControlWeb.Services.WorkerProcessManager WorkerProcessManager
+@{
+    var sidebarServices = WorkerProcessManager.GetAllStatuses();
+
+    var displayName = User.FindFirst("DisplayName")?.Value ?? User.Identity?.Name ?? "Utilisateur";
+    var jobTitle = User.FindFirst("JobTitle")?.Value ?? "";
+    var memberSinceClaim = User.FindFirst("MemberSince")?.Value;
+    DateTime? memberSince = DateTime.TryParse(memberSinceClaim, out var parsedMemberSince) ? parsedMemberSince : null;
+    var initials = string.Join("", displayName.Split(' ', StringSplitOptions.RemoveEmptyEntries).Take(2).Select(p => char.ToUpperInvariant(p[0])));
+    var totalServices = sidebarServices.Count;
+    var runningServices = sidebarServices.Count(s => s.State == "running");
+
+    var currentController = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
+    var currentAction = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
+    var currentServiceKey = Context.Request.Query["key"].ToString();
+    var isOverview = currentController == "Worker" && currentAction == "Index";
+    var isService = currentController == "Worker" && currentAction == "Service";
+    var isFiles = currentController == "Worker" && currentAction == "Files";
+    var isAdmin = currentController == "Admin";
+    var isProfile = currentController == "Account" && currentAction == "Profile";
+
+    var topbarLabel = isOverview ? "Vue d’ensemble"
+        : isService ? "Détail du flux"
+        : isFiles ? "Fichiers des services"
+        : isAdmin ? "Administration"
+        : isProfile ? "Mon profil"
+        : ViewData["Title"]?.ToString() ?? "Centre de supervision";
+}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0f172a" />
+    <meta name="description" content="FlowOps, centre de supervision et de pilotage des services de transfert." />
+    <title>@ViewData["Title"] · FlowOps</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <script>
+        (function () {
+            var saved = localStorage.getItem('theme');
+            var theme = saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+            document.documentElement.setAttribute('data-theme', theme);
+
+            if (localStorage.getItem('sidebarCollapsed') === 'true') {
+                document.documentElement.classList.add('sidebar-collapsed');
+            }
+        })();
+    </script>
+</head>
+<body class="app-body">
+    <a class="skip-link" href="#mainContent">Aller au contenu principal</a>
+
+    <div class="app-layout">
+        <aside class="app-sidebar" id="appSidebar" aria-label="Navigation principale">
+            <div class="sidebar-brand">
+                <a class="sidebar-brand-link" asp-controller="Worker" asp-action="Index" aria-label="FlowOps — Accueil">
+                    <span class="brand-mark" aria-hidden="true"><span>F</span></span>
+                    <span class="sidebar-brand-copy">
+                        <strong>FlowOps</strong>
+                        <small>Centre de supervision</small>
+                    </span>
+                </a>
+            </div>
+
+            <div class="sidebar-environment" aria-label="Environnement local actif">
+                <span class="environment-pulse" aria-hidden="true"></span>
+                <span>
+                    <small>Environnement</small>
+                    <strong>Poste local</strong>
+                </span>
+                <span class="environment-badge">Actif</span>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="sidebar-section">
+                    <span class="sidebar-section-label">Pilotage</span>
+
+                    <a class="sidebar-link @(isOverview ? "is-active" : "")" asp-controller="Worker" asp-action="Index" aria-current="@(isOverview ? "page" : null)">
+                        <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                            <rect x="3" y="3" width="7" height="7" rx="2" stroke="currentColor" stroke-width="1.7" />
+                            <rect x="14" y="3" width="7" height="7" rx="2" stroke="currentColor" stroke-width="1.7" />
+                            <rect x="3" y="14" width="7" height="7" rx="2" stroke="currentColor" stroke-width="1.7" />
+                            <rect x="14" y="14" width="7" height="7" rx="2" stroke="currentColor" stroke-width="1.7" />
+                        </svg>
+                        <span class="sidebar-label">Vue d’ensemble</span>
+                    </a>
+
+                    <div class="sidebar-group">
+                        <button type="button" class="sidebar-group-toggle @(isService ? "is-active" : "")" data-bs-toggle="collapse" data-bs-target="#sidebarServicesGroup" aria-expanded="true" aria-controls="sidebarServicesGroup">
+                            <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                <path d="M4 7.5L12 3l8 4.5-8 4.5-8-4.5Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" />
+                                <path d="m4 12 8 4.5 8-4.5M4 16.5 12 21l8-4.5" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" />
+                            </svg>
+                            <span class="sidebar-label">Flux supervisés</span>
+                            <span class="sidebar-count">@totalServices</span>
+                            <svg class="sidebar-chevron" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                <path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+                            </svg>
+                        </button>
+
+                        <div class="collapse show" id="sidebarServicesGroup">
+                            <ul class="sidebar-sublist" id="sidebarServiceList">
+                                @foreach (var svc in sidebarServices)
+                                {
+                                    var serviceIsActive = isService && string.Equals(currentServiceKey, svc.Key, StringComparison.OrdinalIgnoreCase);
+                                    var serviceStateLabel = svc.State == "running" ? "En cours" : svc.State == "waiting" ? "Terminé · en attente" : "Arrêté";
+                                    <li class="sidebar-service-item">
+                                        <a class="sidebar-sublink @(serviceIsActive ? "is-active" : "")" asp-controller="Worker" asp-action="Service" asp-route-key="@svc.Key" data-service="@svc.Key" aria-current="@(serviceIsActive ? "page" : null)">
+                                            <span class="service-dot @(svc.State == "running" ? "is-on" : svc.State == "waiting" ? "is-waiting" : "is-off")" data-role="dot" data-state="@svc.State" aria-hidden="true"></span>
+                                            <span class="sidebar-service-name">@svc.DisplayName</span>
+                                            <span class="visually-hidden">— @serviceStateLabel</span>
+                                        </a>
+                                        @if (User.IsInRole("Admin"))
+                                        {
+                                            <button type="button" class="sidebar-delete-btn" data-action="delete-service" data-service="@svc.Key" data-service-name="@svc.DisplayName" title="Supprimer @svc.DisplayName" aria-label="Supprimer @svc.DisplayName">
+                                                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                                    <path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m2 0-1 13a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1L6 7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+                                                </svg>
+                                            </button>
+                                        }
+                                    </li>
+                                }
+                            </ul>
+                        </div>
+                    </div>
+
+                    <button type="button" class="sidebar-link" data-bs-toggle="modal" data-bs-target="#addServiceModal">
+                        <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                            <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+                        </svg>
+                        <span class="sidebar-label">Ajouter un service</span>
+                    </button>
+                </div>
+
+                <div class="sidebar-section">
+                    <span class="sidebar-section-label">Ressources</span>
+
+                    <a class="sidebar-link @(isFiles ? "is-active" : "")" asp-controller="Worker" asp-action="Files" aria-current="@(isFiles ? "page" : null)">
+                        <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                            <path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" />
+                        </svg>
+                        <span class="sidebar-label">Fichiers des services</span>
+                    </a>
+
+                    @if (User.IsInRole("Admin"))
+                    {
+                        <a class="sidebar-link @(isAdmin ? "is-active" : "")" asp-controller="Admin" asp-action="Dashboard" aria-current="@(isAdmin ? "page" : null)">
+                            <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
+                            </svg>
+                            <span class="sidebar-label">Administration</span>
+                        </a>
+                    }
+                </div>
+            </nav>
+
+            <div class="sidebar-footer">
+                <button type="button" id="themeToggle" class="theme-toggle" aria-label="Basculer le thème">
+                    <span class="theme-icon" aria-hidden="true">
+                        <svg class="icon-moon" viewBox="0 0 24 24" fill="none">
+                            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                        <svg class="icon-sun" viewBox="0 0 24 24" fill="none">
+                            <circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="1.7" />
+                            <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
+                        </svg>
+                    </span>
+                    <span class="sidebar-label" id="themeLabel">Mode sombre</span>
+                    <span class="theme-switch" aria-hidden="true"><span></span></span>
+                </button>
+            </div>
+        </aside>
+
+        <div class="app-content">
+            <header class="app-topbar">
+                <button type="button" class="sidebar-toggle-btn" id="sidebarToggle" aria-label="Afficher ou masquer le menu" aria-expanded="false" aria-controls="appSidebar">
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+                    </svg>
+                </button>
+
+                <div class="topbar-context">
+                    <span>Espace de travail</span>
+                    <strong>@topbarLabel</strong>
+                </div>
+
+                <div class="topbar-spacer"></div>
+
+                <div class="topbar-live d-none d-md-flex" aria-label="Supervision en direct active">
+                    <span class="topbar-live-dot" aria-hidden="true"></span>
+                    <span>Supervision active</span>
+                </div>
+
+                <div class="dropdown profile-dropdown">
+                    <button type="button" class="profile-trigger" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Ouvrir le menu du profil de @displayName">
+                        <span class="profile-avatar">@initials</span>
+                        <span class="profile-trigger-copy d-none d-sm-flex">
+                            <strong>@displayName</strong>
+                            <small>@(string.IsNullOrWhiteSpace(jobTitle) ? "Utilisateur FlowOps" : jobTitle)</small>
+                        </span>
+                        <svg class="profile-trigger-chevron d-none d-sm-block" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                            <path d="m7 10 5 5 5-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                    </button>
+
+                    <div class="dropdown-menu dropdown-menu-end profile-menu">
+                        <div class="profile-menu-cover">
+                            <span class="profile-menu-avatar">@initials</span>
+                            <span class="profile-menu-status" aria-label="Compte connecté"></span>
+                        </div>
+
+                        <div class="profile-menu-body">
+                            <h6 class="profile-menu-name">@displayName</h6>
+                            <p class="profile-menu-role">@(string.IsNullOrWhiteSpace(jobTitle) ? "Utilisateur FlowOps" : jobTitle)</p>
+
+                            @if (memberSince.HasValue)
+                            {
+                                <p class="profile-menu-since">
+                                    Membre depuis @memberSince.Value.ToString("MMM yyyy", new System.Globalization.CultureInfo("fr-FR"))
+                                </p>
+                            }
+
+                            <div class="profile-menu-stats">
+                                <div>
+                                    <strong>@totalServices</strong>
+                                    <span>Services</span>
+                                </div>
+                                <div>
+                                    <strong>@runningServices</strong>
+                                    <span>En cours</span>
+                                </div>
+                                <div>
+                                    <strong>@(User.IsInRole("Admin") ? "Admin" : "Membre")</strong>
+                                    <span>Accès</span>
+                                </div>
+                            </div>
+
+                            <div class="profile-menu-actions">
+                                <a class="profile-btn profile-btn-outline" asp-controller="Account" asp-action="Profile">Voir mon profil</a>
+                                <form method="post" asp-controller="Account" asp-action="Logout" class="profile-btn-form">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="profile-btn profile-btn-danger">Se déconnecter</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <main class="app-main" id="mainContent" role="main">
+                @RenderBody()
+            </main>
+
+            <footer class="app-footer">
+                <div class="app-footer-inner">
+                    <span><strong>FlowOps</strong> · Console d’exploitation locale</span>
+                    <span class="footer-separator" aria-hidden="true">•</span>
+                    <a asp-controller="Home" asp-action="Privacy">Confidentialité et sécurité</a>
+                </div>
+            </footer>
+        </div>
+    </div>
+
+    <div class="modal fade" id="addServiceModal" tabindex="-1" aria-labelledby="addServiceModalTitle" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content add-service-modal">
+                <div id="addServiceAntiforgery" class="d-none">@Html.AntiForgeryToken()</div>
+                <div class="modal-header add-service-modal-header">
+                    <div>
+                        <span class="modal-eyebrow">Nouveau flux</span>
+                        <h2 class="modal-title" id="addServiceModalTitle">Ajouter un service</h2>
+                        <p>Déposez votre projet : FlowOps trouve l’exécutable et prépare les services.</p>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+                </div>
+
+                <div class="modal-body">
+                    <div class="modal-guide">
+                        <span class="modal-guide-number">1</span>
+                        <div>
+                            <strong>Déposez le dossier de votre projet</strong>
+                            <p>FlowOps recherche automatiquement les fichiers .exe et vous propose le meilleur résultat.</p>
+                        </div>
+                    </div>
+
+                    <div class="service-drop-zone" id="serviceDropZone" role="button" tabindex="0" aria-describedby="serviceDropHelp">
+                        <input type="file" id="serviceFolderInput" class="visually-hidden" webkitdirectory directory multiple />
+                        <div class="service-drop-icon" aria-hidden="true">
+                            <span>↓</span>
+                        </div>
+                        <div class="service-drop-copy">
+                            <strong>Glissez-déposez votre dossier ici</strong>
+                            <p id="serviceDropHelp">ou <span>choisissez un dossier</span> depuis votre ordinateur</p>
+                            <small>Projet compilé ou publié · jusqu’à 750 Mo</small>
+                        </div>
+                    </div>
+
+                    <div class="service-drop-state d-none" id="serviceDropState" aria-live="polite">
+                        <div class="service-drop-state-header">
+                            <span class="service-drop-state-icon" aria-hidden="true">EXE</span>
+                            <div>
+                                <strong id="serviceDropStateTitle">Analyse du projet…</strong>
+                                <small id="serviceDropStateText"></small>
+                            </div>
+                        </div>
+                        <div class="service-upload-progress" aria-hidden="true">
+                            <span id="serviceUploadProgressBar"></span>
+                        </div>
+                    </div>
+
+                    <div class="uploaded-executable-panel d-none" id="uploadedExecutablePanel">
+                        <label class="form-label" for="uploadedExecutableSelect">Exécutable détecté</label>
+                        <select class="form-select" id="uploadedExecutableSelect"></select>
+                        <span class="form-help" id="uploadedExecutableHelp">Le meilleur résultat est sélectionné automatiquement.</span>
+                    </div>
+
+                    <input type="hidden" id="serviceUploadToken" />
+                    <input type="hidden" id="uploadedExeRelativePath" />
+
+                    <div id="detectStatus" class="add-service-status" aria-live="polite"></div>
+                    <div id="detectResult"></div>
+
+                    <div class="advanced-path-wrap">
+                        <button type="button" class="advanced-path-toggle" id="advancedPathToggle" aria-expanded="false" aria-controls="advancedPathSection">
+                            Utiliser un chemin local à la place
+                        </button>
+
+                        <div id="advancedPathSection" class="advanced-path-section d-none">
+                            <div class="form-field">
+                                <label class="form-label" for="exePathInput">Chemin du fichier .exe</label>
+                                <div class="input-action-row">
+                                    <input type="text" class="form-control" id="exePathInput" placeholder="C:\Services\MonWorker\service.exe" autocomplete="off" />
+                                    <button type="button" class="btn-app-secondary btn-auto" id="browseToggleBtn">Parcourir</button>
+                                </div>
+                                <span class="form-help">Méthode avancée : collez un chemin local ou parcourez les dossiers de ce poste.</span>
+                            </div>
+
+                            <div id="fileBrowserPanel" class="file-browser d-none">
+                                <div class="file-browser-path" id="fileBrowserPath">Lecteurs</div>
+                                <ul class="file-browser-list" id="fileBrowserList"></ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="manual-service-toggle-wrap">
+                        <button type="button" class="add-service-manual-toggle" id="manualToggleBtn">Ajouter un service manuellement</button>
+                    </div>
+
+                    <div id="manualSection" class="d-none manual-service-section">
+                        <div class="modal-guide modal-guide-compact">
+                            <span class="modal-guide-number">2</span>
+                            <div>
+                                <strong>Décrivez les services à superviser</strong>
+                                <p>La clé accepte les lettres, chiffres, tirets, points et tirets bas.</p>
+                            </div>
+                        </div>
+                        <div id="manualRows">
+                            <div class="manual-row">
+                                <input type="text" class="form-control" placeholder="Clé du service" data-role="manual-key" aria-label="Clé du service" />
+                                <input type="text" class="form-control" placeholder="Nom affiché (optionnel)" data-role="manual-name" aria-label="Nom affiché du service" />
+                            </div>
+                        </div>
+                        <button type="button" class="btn-text" id="addManualRowBtn">+ Ajouter une ligne</button>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <span id="addServiceMessage" class="modal-status-message" aria-live="polite"></span>
+                    <button type="button" class="btn-app-ghost btn-auto" data-bs-dismiss="modal">Annuler</button>
+                    <button type="button" class="btn-app-primary btn-auto" id="submitAddServiceBtn">Ajouter à FlowOps</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/toast.js" asp-append-version="true"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="~/js/add-service.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+    <div id="toastContainer" class="toast-container" role="status" aria-live="polite" aria-atomic="false"></div>
+</body>
+</html>

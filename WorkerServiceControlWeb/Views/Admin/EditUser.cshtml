@@ -1,0 +1,180 @@
+@model WorkerServiceControlWeb.Models.AppUser
+
+@{
+    ViewData["Title"] = "Modifier un compte";
+    var error = ViewBag.Error as string;
+    var displayName = string.IsNullOrWhiteSpace(Model.DisplayName) ? Model.Username : Model.DisplayName;
+    var initials = string.Join("", displayName
+        .Split(' ', StringSplitOptions.RemoveEmptyEntries)
+        .Take(2)
+        .Select(part => char.ToUpperInvariant(part[0])));
+
+    if (string.IsNullOrEmpty(initials))
+    {
+        initials = "FO";
+    }
+
+    var isAdmin = string.Equals(Model.Role, "Admin", StringComparison.OrdinalIgnoreCase);
+    var memberSinceLabel = Model.MemberSince.ToString("dd MMMM yyyy", new System.Globalization.CultureInfo("fr-FR"));
+}
+
+<div class="app-shell admin-page admin-edit-page">
+    <nav class="page-breadcrumb" aria-label="Fil d’Ariane">
+        <a class="back-link" asp-controller="Admin" asp-action="Dashboard">
+            <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+            <span>Comptes et accès</span>
+        </a>
+    </nav>
+
+    <header class="page-header page-header-split">
+        <div class="page-header-content">
+            <p class="page-eyebrow">Administration des accès</p>
+            <h1>Modifier @displayName</h1>
+            <p>Mettez à jour les informations et les autorisations associées à ce compte.</p>
+        </div>
+        <span class="role-badge @(isAdmin ? "role-badge-admin" : "role-badge-user")">
+            @(isAdmin ? "Administrateur" : "Utilisateur")
+        </span>
+    </header>
+
+    <div class="admin-form-layout">
+        <section class="surface-card admin-form-card" aria-labelledby="editAccountTitle">
+            <div class="panel-header admin-form-header">
+                <div>
+                    <p class="panel-eyebrow">Paramètres du compte</p>
+                    <h2 id="editAccountTitle" class="panel-title">Informations et autorisations</h2>
+                    <p class="panel-copy">Les changements seront appliqués dès l’enregistrement.</p>
+                </div>
+            </div>
+
+            @if (!string.IsNullOrEmpty(error))
+            {
+                <div class="admin-alert admin-alert-error" role="alert">
+                    <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.7" />
+                        <path d="M12 8v5M12 16.5h.01" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
+                    </svg>
+                    <span>@error</span>
+                </div>
+            }
+
+            <form method="post" asp-controller="Admin" asp-action="EditUser" class="admin-form">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="username" value="@Model.Username" />
+
+                <div class="form-field">
+                    <label class="form-label" for="editUsername">Nom d’utilisateur</label>
+                    <input type="text"
+                           id="editUsername"
+                           class="form-control"
+                           value="@Model.Username"
+                           autocomplete="username"
+                           readonly
+                           aria-describedby="usernameHint" />
+                    <p id="usernameHint" class="form-hint">Cet identifiant unique ne peut pas être modifié.</p>
+                </div>
+
+                <div class="admin-form-grid">
+                    <div class="form-field">
+                        <label class="form-label" for="editDisplayName">Nom affiché</label>
+                        <input type="text"
+                               id="editDisplayName"
+                               name="displayName"
+                               class="form-control"
+                               value="@Model.DisplayName"
+                               autocomplete="name"
+                               placeholder="Ex. Jean Dupont" />
+                    </div>
+
+                    <div class="form-field">
+                        <label class="form-label" for="editJobTitle">Fonction</label>
+                        <input type="text"
+                               id="editJobTitle"
+                               name="jobTitle"
+                               class="form-control"
+                               value="@Model.JobTitle"
+                               autocomplete="organization-title"
+                               placeholder="Ex. Responsable IT" />
+                    </div>
+
+                    <div class="form-field">
+                        <label class="form-label" for="editRole">Niveau d’accès</label>
+                        <select id="editRole" name="role" class="form-select" aria-describedby="roleHint">
+                            <option value="User" selected="@(!isAdmin)">Utilisateur</option>
+                            <option value="Admin" selected="@(isAdmin)">Administrateur</option>
+                        </select>
+                        <p id="roleHint" class="form-hint">Les administrateurs peuvent gérer les comptes et supprimer des services.</p>
+                    </div>
+
+                    <div class="form-field">
+                        <label class="form-label" for="editPassword">
+                            Nouveau mot de passe
+                            <span class="form-label-optional">Optionnel</span>
+                        </label>
+                        <input type="password"
+                               id="editPassword"
+                               name="newPassword"
+                               class="form-control"
+                               autocomplete="new-password"
+                               aria-describedby="newPasswordHint"
+                               minlength="6" />
+                        <p id="newPasswordHint" class="form-hint">Laissez ce champ vide pour conserver le mot de passe actuel.</p>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <a class="secondary-action" asp-controller="Admin" asp-action="Dashboard">Annuler</a>
+                    <button type="submit" class="btn-app-primary form-submit">
+                        <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M5 4h12l2 2v14H5V4zM8 4v6h8V4M8 20v-6h8v6" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" />
+                        </svg>
+                        <span>Enregistrer les modifications</span>
+                    </button>
+                </div>
+            </form>
+        </section>
+
+        <aside class="admin-context-column" aria-label="Résumé du compte">
+            <article class="surface-card account-context-card">
+                <div class="account-context-identity">
+                    <span class="profile-avatar-large" aria-hidden="true">@initials</span>
+                    <div>
+                        <p class="panel-eyebrow">Compte sélectionné</p>
+                        <h2>@displayName</h2>
+                        <p>@("@" + Model.Username)</p>
+                    </div>
+                </div>
+
+                <dl class="account-context-list">
+                    <div>
+                        <dt>Accès actuel</dt>
+                        <dd>@(isAdmin ? "Administrateur" : "Utilisateur")</dd>
+                    </div>
+                    <div>
+                        <dt>Fonction</dt>
+                        <dd>@(string.IsNullOrWhiteSpace(Model.JobTitle) ? "Non renseignée" : Model.JobTitle)</dd>
+                    </div>
+                    <div>
+                        <dt>Membre depuis</dt>
+                        <dd>@memberSinceLabel</dd>
+                    </div>
+                </dl>
+            </article>
+
+            <article class="surface-card admin-guidance-card">
+                <span class="admin-guidance-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.7" />
+                        <path d="M12 11v5M12 8h.01" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
+                    </svg>
+                </span>
+                <div>
+                    <h2>Bon réflexe</h2>
+                    <p>Attribuez le rôle administrateur uniquement aux personnes chargées de gérer les accès et les services.</p>
+                </div>
+            </article>
+        </aside>
+    </div>
+</div>

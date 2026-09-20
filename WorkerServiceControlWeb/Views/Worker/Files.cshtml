@@ -1,0 +1,132 @@
+@model List<string>
+
+@{
+    ViewData["Title"] = "Explorateur de fichiers";
+    var serviceCount = Model.Count;
+}
+
+<div class="app-shell explorer-shell" id="filesShell">
+
+    <section class="explorer-hero surface-card p-4 mb-4" aria-labelledby="filesTitle">
+        <div class="d-flex flex-column flex-lg-row align-items-lg-center justify-content-between gap-4">
+            <div class="explorer-hero-copy">
+                <span class="page-eyebrow">Ressources des services</span>
+                <h1 id="filesTitle" class="mt-2 mb-2">Explorateur de fichiers</h1>
+                <p class="text-muted mb-0">
+                    Parcourez les dossiers déployés et consultez le contenu des fichiers texte de chaque service.
+                </p>
+            </div>
+
+            <div class="explorer-summary" aria-label="Résumé de l'explorateur">
+                <span class="explorer-summary-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none">
+                        <path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" />
+                        <path d="M8 12h8M8 15h5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+                    </svg>
+                </span>
+                <span>
+                    <strong>@serviceCount</strong>
+                    <small>service@(serviceCount > 1 ? "s" : "") avec fichiers</small>
+                </span>
+            </div>
+        </div>
+    </section>
+
+    @if (!Model.Any())
+    {
+        <section class="surface-card empty-state-panel text-center p-5" aria-labelledby="filesEmptyTitle">
+            <span class="empty-state-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none">
+                    <path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" />
+                    <path d="M12 10v6M9 13h6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
+                </svg>
+            </span>
+            <h2 id="filesEmptyTitle">Aucun fichier de service</h2>
+            <p class="text-muted mx-auto">
+                Ajoutez un service depuis un exécutable pour rendre ses fichiers disponibles dans cet explorateur.
+            </p>
+            <button type="button" class="btn-app-primary btn-auto" data-bs-toggle="modal" data-bs-target="#addServiceModal">
+                Ajouter un service
+            </button>
+        </section>
+    }
+    else
+    {
+        <div class="files-layout explorer-layout">
+
+            <aside class="files-sidebar-panel explorer-sidebar" aria-labelledby="filesServicesTitle">
+                <div class="explorer-panel-heading">
+                    <div>
+                        <h2 id="filesServicesTitle">Services</h2>
+                        <p>Sélectionnez une source</p>
+                    </div>
+                    <span class="explorer-panel-count" aria-label="@serviceCount services">@serviceCount</span>
+                </div>
+                <ul class="files-service-list" id="filesSidebarList">
+                    @foreach (var key in Model)
+                    {
+                        <li>
+                            <button type="button" class="files-service-item" data-key="@key" aria-controls="filesContent" aria-label="Afficher les fichiers du service @key">
+                                <span class="files-service-icon" aria-hidden="true">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" />
+                                    </svg>
+                                </span>
+                                <span>@key</span>
+                                <svg class="files-service-chevron" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                    <path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
+                                </svg>
+                            </button>
+                        </li>
+                    }
+                </ul>
+            </aside>
+
+            <section class="files-main-panel explorer-main" id="filesMainPanel" aria-label="Contenu du service sélectionné">
+                <div class="files-empty-state explorer-selection-empty" id="filesEmptyState">
+                    <span class="files-empty-icon" aria-hidden="true">
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" />
+                            <path d="M9 12h6M12 9v6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+                        </svg>
+                    </span>
+                    <div>
+                        <h2 id="filesContentTitle">Sélectionnez un service</h2>
+                        <p>Choisissez un service dans la liste pour parcourir ses dossiers et ses fichiers.</p>
+                    </div>
+                </div>
+
+                <div id="filesContent" class="d-none">
+                    <div class="files-content-heading explorer-content-heading">
+                        <div>
+                            <h2>Contenu du dossier</h2>
+                            <p>Sélectionnez un fichier texte pour afficher son aperçu.</p>
+                        </div>
+                    </div>
+
+                    <div class="files-breadcrumb" id="filesBreadcrumb" aria-label="Chemin du dossier"></div>
+                    <div class="file-tree" id="fileTree" aria-label="Fichiers et dossiers"></div>
+
+                    <div class="file-viewer d-none" id="fileViewer">
+                        <div class="file-viewer-header">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" />
+                                <path d="M14 2v6h6" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" />
+                            </svg>
+                            <span class="file-viewer-label">Aperçu</span>
+                            <strong id="fileViewerName"></strong>
+                            <button type="button" class="file-viewer-close" id="fileViewerClose" title="Fermer l'aperçu" aria-label="Fermer l'aperçu du fichier">&#x2715;</button>
+                        </div>
+                        <pre class="file-viewer-pre" id="fileViewerPre" tabindex="0"></pre>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    }
+
+</div>
+
+@section Scripts {
+    <script src="~/js/service-files.js" asp-append-version="true"></script>
+}

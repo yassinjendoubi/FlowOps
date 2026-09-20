@@ -1,0 +1,76 @@
+# ================================================================
+# FlowOps - fichiers locaux, secrets et sorties de compilation
+# ================================================================
+
+# Compilations .NET
+**/[Bb]in/
+**/[Oo]bj/
+**/[Dd]ebug/
+**/[Rr]elease/
+artifacts/
+publish/
+
+# Visual Studio / Rider / VS Code (configuration locale)
+.vs/
+.idea/
+.vscode/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.rsuser
+
+# Configuration privée de l'application
+**/appsettings.json
+**/appsettings.*.json
+!**/appsettings.example.json
+!**/appsettings.*.example.json
+**/secrets.json
+**/secrets.*.json
+
+# Variables d'environnement et secrets locaux
+.env
+.env.*
+!.env.example
+*.secret
+*.secrets
+
+# Données d'exécution FlowOps : utilisateurs, services, historique et logs
+**/App_Data/
+
+# Journaux, bases de données et fichiers temporaires
+*.log
+*.log.*
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+*.bak
+*.tmp
+*.temp
+
+# Clés privées, certificats et informations d'identification
+*.pfx
+*.p12
+*.key
+*.pem
+*.credentials
+
+# Résultats de tests et couverture
+TestResults/
+coverage/
+coverage.*
+*.coverage
+*.coveragexml
+
+# Paquets et restaurations locales
+packages/
+*.nupkg
+*.snupkg
+
+# Fichiers du système d'exploitation
+.DS_Store
+Thumbs.db
+Desktop.ini
+

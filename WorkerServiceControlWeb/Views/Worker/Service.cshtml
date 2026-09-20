@@ -1,0 +1,216 @@
+@model WorkerServiceControlWeb.Models.ServiceStatus
+
+@{
+    ViewData["Title"] = Model.DisplayName;
+    var isActive = Model.State != "stopped";
+    var stateLabel = Model.State == "running" ? "En cours" : Model.State == "waiting" ? "Terminé · en attente" : "Arrêté";
+    var stateClass = Model.State == "running" ? "state-running" : Model.State == "waiting" ? "state-waiting" : "state-stopped";
+    var dotClass = Model.State == "running" ? "is-on" : Model.State == "waiting" ? "is-waiting" : "is-off";
+    var logCount = Model.Logs?.Count ?? 0;
+}
+
+<div class="app-shell service-detail-shell" data-service="@Model.Key" data-service-name="@Model.DisplayName">
+
+    <nav aria-label="Fil d'Ariane">
+        <a class="back-link" asp-controller="Worker" asp-action="Index">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M19 12H5M11 18l-6-6 6-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+            Retour à la vue d'ensemble
+        </a>
+    </nav>
+
+    <section class="service-detail-hero" aria-labelledby="serviceTitle">
+        <div class="service-detail-header">
+            <div class="service-detail-identity">
+                <span class="service-overview-icon service-detail-icon" aria-hidden="true">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                        <path d="M5 7h9M11 4l3 3-3 3M19 17h-9M13 14l-3 3 3 3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                </span>
+                <div>
+                    <span class="page-eyebrow">Service supervisé</span>
+                    <h1 id="serviceTitle" class="mb-1">@Model.DisplayName</h1>
+                    <code class="service-detail-key">@Model.Key</code>
+                </div>
+            </div>
+
+            <div class="service-detail-status" aria-label="État actuel du service">
+                <span class="service-status-pill @stateClass" id="detailStatusPill" data-state="@Model.State" aria-live="polite">
+                    <span class="service-dot @dotClass" id="detailDot" data-state="@Model.State" aria-hidden="true"></span>
+                    <span id="detailStatusLabel">@stateLabel</span>
+                </span>
+            </div>
+        </div>
+
+        <div class="service-detail-actions" aria-label="Commandes du service">
+            <button type="button" id="btnStart" class="btn-app-primary btn-auto service-start-btn" data-service="@Model.Key" @(isActive ? "disabled" : "")>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M9 7l8 5-8 5V7z" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round" />
+                </svg>
+                Démarrer
+            </button>
+            <button type="button" id="btnStop" class="btn-app-secondary service-stop-btn" data-service="@Model.Key" @(!isActive ? "disabled" : "")>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <rect x="7.5" y="7.5" width="9" height="9" rx="1" stroke="currentColor" stroke-width="1.8" />
+                </svg>
+                Arrêter
+            </button>
+
+            <button type="button"
+                    class="btn-app-secondary service-history-btn"
+                    data-action="open-service-history"
+                    data-service-key="@Model.Key"
+                    data-service-name="@Model.DisplayName"
+                    data-bs-toggle="modal"
+                    data-bs-target="#serviceHistoryModal"
+                    aria-label="Afficher l'historique du service @Model.DisplayName">
+                <span class="service-action-mark" aria-hidden="true">H</span>
+                Historique
+            </button>
+
+            @if (User.IsInRole("Admin"))
+            {
+                <button type="button"
+                        class="btn-app-secondary service-settings-btn"
+                        data-action="open-appsettings"
+                        data-service-key="@Model.Key"
+                        data-service-name="@Model.DisplayName"
+                        data-bs-toggle="modal"
+                        data-bs-target="#appSettingsModal"
+                        aria-label="Modifier le fichier appsettings.json du service @Model.DisplayName">
+                    <span class="service-action-mark service-action-mark-code" aria-hidden="true">&#123; &#125;</span>
+                    App settings
+                </button>
+                <div class="service-detail-danger-actions">
+                    <button type="button" id="btnDelete" class="btn-app-secondary btn-danger-outline service-delete-btn" data-service="@Model.Key" data-service-name="@Model.DisplayName">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                            <path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m2 0-1 13a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1L6 7" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                        Supprimer le service
+                    </button>
+                </div>
+            }
+        </div>
+    </section>
+
+    <section class="service-metadata-section mb-4" aria-labelledby="serviceMetadataTitle">
+        <div class="d-flex align-items-end justify-content-between gap-3 mb-3">
+            <div>
+                <span class="page-eyebrow">Informations en direct</span>
+                <h2 id="serviceMetadataTitle" class="mb-0">Aperçu du service</h2>
+            </div>
+            <span class="terminal-status">Actualisation automatique</span>
+        </div>
+
+        <div class="metadata-grid service-metadata-grid">
+            <article class="metadata-card">
+                <span class="metadata-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none"><path d="M8 9l-3 3 3 3M16 9l3 3-3 3M14 5l-4 14" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" /></svg>
+                </span>
+                <div>
+                    <span class="metadata-label">Identifiant</span>
+                    <strong class="metadata-value metadata-value-code">@Model.Key</strong>
+                </div>
+            </article>
+            <article class="metadata-card">
+                <span class="metadata-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6" /><path d="M8 12l2.5 2.5L16 9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg>
+                </span>
+                <div>
+                    <span class="metadata-label">État</span>
+                    <strong class="metadata-value @stateClass" id="detailStatusValue">@stateLabel</strong>
+                </div>
+            </article>
+            <article class="metadata-card">
+                <span class="metadata-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none"><path d="M5 4h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H9l-4 3v-3a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" /><path d="M8 9h8M8 13h5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" /></svg>
+                </span>
+                <div>
+                    <span class="metadata-label">Journaux</span>
+                    <strong class="metadata-value"><span id="detailLogCount">@logCount</span> <span id="detailLogLabel">ligne@(logCount > 1 ? "s" : "")</span></strong>
+                </div>
+            </article>
+        </div>
+    </section>
+
+    <section class="service-history-section surface-card mb-4"
+             aria-labelledby="serviceHistoryRecentTitle"
+             data-history-panel
+             data-service-key="@Model.Key"
+             data-service-name="@Model.DisplayName">
+        <div class="service-history-heading">
+            <div>
+                <span class="page-eyebrow">Tra&ccedil;abilit&eacute; op&eacute;rationnelle</span>
+                <h2 id="serviceHistoryRecentTitle" class="mb-1">Historique du service</h2>
+                <p class="text-muted mb-0">D&eacute;marrages, fins de traitement et arr&ecirc;ts, horodat&eacute;s automatiquement.</p>
+            </div>
+            <div class="service-history-heading-actions">
+                <span class="service-history-count" aria-label="Nombre d'&eacute;v&eacute;nements r&eacute;cents">
+                    <strong id="serviceHistoryRecentCount">0</strong>
+                    &eacute;v&eacute;nement<span id="serviceHistoryRecentPlural">s</span>
+                </span>
+                <button type="button" id="btnClearHistoryPanel" class="terminal-clear-btn" data-service="@Model.Key" title="Supprimer l'historique" aria-label="Supprimer l'historique de @Model.DisplayName">
+                    Effacer
+                </button>
+            </div>
+        </div>
+
+        <div class="service-history-body" id="serviceHistoryRecentBody" aria-busy="true">
+            <p class="service-tool-state service-tool-loading" id="serviceHistoryRecentLoading">Chargement de l'historique&hellip;</p>
+            <p class="service-tool-state service-tool-error" id="serviceHistoryRecentError" role="alert" hidden></p>
+            <div class="service-tool-state service-tool-empty" id="serviceHistoryRecentEmpty" hidden>
+                <strong>Aucun &eacute;v&eacute;nement enregistr&eacute;</strong>
+                <span>D&eacute;marrez ce service pour cr&eacute;er sa premi&egrave;re entr&eacute;e d'historique.</span>
+            </div>
+            <ol class="service-history-list service-history-list-recent" id="serviceHistoryRecentList" aria-label="Activit&eacute; r&eacute;cente du service"></ol>
+        </div>
+    </section>
+
+    <section class="service-terminal-section" aria-labelledby="terminalSectionTitle">
+        <div class="terminal-section-heading">
+            <div>
+                <span class="page-eyebrow">Suivi d'exécution</span>
+                <h2 id="terminalSectionTitle" class="mb-1">Journal en direct</h2>
+                <p class="text-muted mb-0">Les nouvelles lignes apparaissent automatiquement pendant l'exécution.</p>
+            </div>
+            <div class="terminal-toolbar">
+                <span class="terminal-status">Synchronisation active</span>
+                <span class="terminal-count"><strong id="terminalLogCount">@logCount</strong> <span id="terminalLogLabel">ligne@(logCount > 1 ? "s" : "")</span></span>
+            </div>
+        </div>
+
+        <div class="terminal-card" id="terminalCard-@Model.Key">
+            <div class="terminal-header terminal-toolbar">
+                <div class="terminal-dots" aria-hidden="true">
+                    <span></span><span></span><span></span>
+                </div>
+                <span class="terminal-title" id="terminalTitle-@Model.Key">@Model.DisplayName · JOURNAL</span>
+                <button type="button" id="btnClearLogs" class="terminal-clear-btn" data-service="@Model.Key" title="Effacer les journaux" aria-label="Effacer tous les journaux de @Model.DisplayName">
+                    Effacer
+                </button>
+            </div>
+
+            <div class="terminal-body" id="terminalBody-@Model.Key" role="log" aria-label="Journal du service @Model.DisplayName">
+                <div class="terminal-empty">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                        <rect x="3" y="4" width="18" height="14" rx="2" stroke="currentColor" stroke-width="1.5" />
+                        <path d="M3 18h18M8 21h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+                        <path d="M7 9l3 2-3 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                        <path d="M12 13h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+                    </svg>
+                    <h4>Aucune activité enregistrée</h4>
+                    <p>Démarrez ce service pour afficher son journal d'exécution.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+</div>
+
+<partial name="_ServiceToolsModals" />
+
+@section Scripts {
+    <script src="~/js/service-tools.js" asp-append-version="true"></script>
+    <script src="~/js/worker-service-detail.js" asp-append-version="true"></script>
+}

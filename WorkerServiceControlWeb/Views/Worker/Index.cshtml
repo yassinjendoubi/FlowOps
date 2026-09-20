@@ -1,0 +1,331 @@
+@model List<WorkerServiceControlWeb.Models.ServiceStatus>
+
+@{
+    ViewData["Title"] = "Vue d'ensemble";
+    var total = Model.Count;
+    var running = Model.Count(s => s.State == "running");
+    var waiting = Model.Count(s => s.State == "waiting");
+    var stopped = Model.Count(s => s.State == "stopped");
+    var activityCount = running + waiting;
+    var activityRate = total == 0 ? 0 : (int)Math.Round(activityCount * 100d / total);
+    var overallStateClass = running > 0 ? "state-running" : waiting > 0 ? "state-waiting" : "state-stopped";
+    var overallTitle = total == 0
+        ? "Aucun service enregistré"
+        : running > 0
+            ? $"{running} service{(running > 1 ? "s" : "")} en cours"
+            : waiting > 0
+                ? $"{waiting} traitement{(waiting > 1 ? "s" : "")} terminé{(waiting > 1 ? "s" : "")}"
+                : "Tous les services sont arrêtés";
+    var overallDescription = total == 0
+        ? "Ajoutez votre premier service pour commencer la supervision."
+        : activityCount > 0
+            ? $"{activityCount} sur {total} service{(total > 1 ? "s" : "")} sont en cours ou ont terminé leur dernière exécution."
+            : "Aucun traitement n'est actuellement en cours.";
+}
+
+<div class="app-shell operations-dashboard">
+
+    <section class="operations-hero" aria-labelledby="overviewTitle">
+        <div class="operations-hero-copy">
+            <span class="page-eyebrow">Centre de supervision</span>
+            <h1 id="overviewTitle">Vue d'ensemble</h1>
+            <p>Supervisez vos flux, consultez leur activité et accédez à chaque service depuis un seul espace.</p>
+        </div>
+
+        <div class="operations-summary @overallStateClass" id="overallSummary" data-state="@overallStateClass.Replace("state-", "")">
+            <div class="operations-summary-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M4 7h10M10 3l4 4-4 4M20 17H10M14 13l-4 4 4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+            </div>
+            <div class="operations-summary-body">
+                <span class="operations-summary-label">Activité des services</span>
+                <strong id="overallStatusTitle">@overallTitle</strong>
+                <span id="overallStatusText">@overallDescription</span>
+            </div>
+            <div class="operations-summary-rate" aria-label="Taux d'activité">
+                <strong id="overallActivityRate">@activityRate%</strong>
+                <span>actifs ou terminés</span>
+            </div>
+        </div>
+
+        <div class="operations-progress" aria-hidden="true">
+            <span id="overallActivityProgress" style="width: @activityRate%;"></span>
+        </div>
+    </section>
+
+    <section aria-labelledby="metricsTitle" class="mb-4">
+        <h2 id="metricsTitle" class="visually-hidden">Indicateurs des services</h2>
+        <div class="metric-grid">
+            <article class="metric-card">
+                <span class="metric-icon metric-icon-total" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none"><rect x="4" y="4" width="6" height="6" rx="1.5" stroke="currentColor" stroke-width="1.7" /><rect x="14" y="4" width="6" height="6" rx="1.5" stroke="currentColor" stroke-width="1.7" /><rect x="4" y="14" width="6" height="6" rx="1.5" stroke="currentColor" stroke-width="1.7" /><rect x="14" y="14" width="6" height="6" rx="1.5" stroke="currentColor" stroke-width="1.7" /></svg>
+                </span>
+                <div>
+                    <span class="metric-card-label">Services enregistrés</span>
+                    <strong class="metric-card-value" id="statTotal">@total</strong>
+                    <span class="metric-caption">Tous les services supervisés</span>
+                </div>
+            </article>
+            <article class="metric-card">
+                <span class="metric-icon metric-icon-running" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none"><path d="M9 7l8 5-8 5V7z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" /><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6" /></svg>
+                </span>
+                <div>
+                    <span class="metric-card-label">En cours</span>
+                    <strong class="metric-card-value" id="statRunning">@running</strong>
+                    <span class="metric-caption">Traitements actuellement actifs</span>
+                </div>
+            </article>
+            <article class="metric-card">
+                <span class="metric-icon metric-icon-completed" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none"><path d="M7 12l3.2 3.2L17.5 8" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" /><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6" /></svg>
+                </span>
+                <div>
+                    <span class="metric-card-label">Terminés</span>
+                    <strong class="metric-card-value" id="statWaiting">@waiting</strong>
+                    <span class="metric-caption">Dernière exécution achevée</span>
+                </div>
+            </article>
+            <article class="metric-card">
+                <span class="metric-icon metric-icon-stopped" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none"><rect x="8" y="8" width="8" height="8" rx="1" stroke="currentColor" stroke-width="1.8" /><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6" /></svg>
+                </span>
+                <div>
+                    <span class="metric-card-label">Arrêtés</span>
+                    <strong class="metric-card-value" id="statStopped">@stopped</strong>
+                    <span class="metric-caption">Aucun traitement en cours</span>
+                </div>
+            </article>
+        </div>
+    </section>
+
+    <section class="service-overview-section" aria-labelledby="servicesOverviewTitle">
+        <div class="service-overview-header">
+            <div>
+                <span class="page-eyebrow">Pilotage opérationnel</span>
+                <h2 id="servicesOverviewTitle" class="mb-1">Services supervisés</h2>
+                <p class="text-muted mb-0">État actuel et volume de journaux pour chaque service enregistré.</p>
+            </div>
+            <span class="service-count-badge"><strong id="servicesListCount">@total</strong> service@(total > 1 ? "s" : "")</span>
+        </div>
+
+        @if (Model.Any())
+        {
+            <div class="service-overview-grid" id="serviceOverviewList">
+                @foreach (var service in Model)
+                {
+                    var stateLabel = service.State == "running" ? "En cours" : service.State == "waiting" ? "Terminé · en attente" : "Arrêté";
+                    var stateClass = service.State == "running" ? "state-running" : service.State == "waiting" ? "state-waiting" : "state-stopped";
+                    var dotClass = service.State == "running" ? "is-on" : service.State == "waiting" ? "is-waiting" : "is-off";
+                    var logCount = service.Logs?.Count ?? 0;
+
+                    <article class="service-overview-card @stateClass" data-service-card data-service-key="@service.Key" data-state="@service.State">
+                            <div class="service-overview-card-top">
+                                <div class="service-overview-identity">
+                                    <span class="service-overview-icon" aria-hidden="true">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M5 7h9M11 4l3 3-3 3M19 17h-9M13 14l-3 3 3 3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" /></svg>
+                                    </span>
+                                    <div>
+                                        <h3 class="service-overview-name">@service.DisplayName</h3>
+                                        <code class="service-overview-key">@service.Key</code>
+                                    </div>
+                                </div>
+                                <span class="service-status-pill @stateClass" data-role="service-status-pill" data-state="@service.State">
+                                    <span class="service-dot @dotClass" data-role="service-dot" aria-hidden="true"></span>
+                                    <span data-role="service-status-label">@stateLabel</span>
+                                </span>
+                            </div>
+
+                            <div class="service-last-event" data-role="service-last-event" hidden>
+                                <span class="service-last-event-marker" data-role="last-event-marker" aria-hidden="true">&bull;</span>
+                                <span class="service-last-event-copy">
+                                    <small>Derni&egrave;re activit&eacute;</small>
+                                    <strong data-role="last-event-label">Aucun &eacute;v&eacute;nement</strong>
+                                </span>
+                                <time class="service-last-event-time" data-role="last-event-time"></time>
+                            </div>
+
+                            <div class="service-overview-meta">
+                                <span>
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 4h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H9l-4 3v-3a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" /></svg>
+                                    <strong data-role="service-log-count">@logCount</strong>
+                                    <span data-role="service-log-label">journal@(logCount > 1 ? "aux" : "")</span>
+                                </span>
+                                <div class="service-overview-actions">
+                                    <button type="button"
+                                            class="btn-app-ghost btn-mini service-card-action"
+                                            data-action="open-service-history"
+                                            data-service-key="@service.Key"
+                                            data-service-name="@service.DisplayName"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#serviceHistoryModal"
+                                            aria-label="Afficher l'historique du service @service.DisplayName">
+                                        <span class="service-card-action-mark" aria-hidden="true">H</span>
+                                        Historique
+                                    </button>
+                                    @if (User.IsInRole("Admin"))
+                                    {
+                                        <button type="button"
+                                            class="btn-app-secondary btn-mini service-card-action"
+                                            data-action="open-appsettings"
+                                            data-service-key="@service.Key"
+                                            data-service-name="@service.DisplayName"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#appSettingsModal"
+                                            aria-label="Modifier le fichier appsettings.json du service @service.DisplayName">
+                                            <span class="service-card-action-mark service-card-action-mark-code" aria-hidden="true">&#123; &#125;</span>
+                                            App settings
+                                        </button>
+                                    }
+                                    <a class="service-overview-link" asp-controller="Worker" asp-action="Service" asp-route-key="@service.Key" aria-label="Ouvrir le service @service.DisplayName">
+                                        Ouvrir le service
+                                        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg>
+                                    </a>
+                                </div>
+                            </div>
+                    </article>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="surface-card empty-state-panel text-center p-5">
+                <span class="empty-state-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" /><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5" /></svg>
+                </span>
+                <h3>Aucun service à superviser</h3>
+                <p class="text-muted">Ajoutez un exécutable pour commencer à suivre son état et ses journaux.</p>
+                <button type="button" class="btn-app-primary btn-auto" data-bs-toggle="modal" data-bs-target="#addServiceModal">
+                    Ajouter un service
+                </button>
+            </div>
+        }
+    </section>
+
+</div>
+
+<partial name="_ServiceToolsModals" />
+
+@section Scripts {
+    <script src="~/js/service-tools.js" asp-append-version="true"></script>
+    <script>
+        (function () {
+            var elTotal = document.getElementById('statTotal');
+            var elRunning = document.getElementById('statRunning');
+            var elWaiting = document.getElementById('statWaiting');
+            var elStopped = document.getElementById('statStopped');
+            var elListCount = document.getElementById('servicesListCount');
+            var overallSummary = document.getElementById('overallSummary');
+            var overallTitle = document.getElementById('overallStatusTitle');
+            var overallText = document.getElementById('overallStatusText');
+            var overallRate = document.getElementById('overallActivityRate');
+            var overallProgress = document.getElementById('overallActivityProgress');
+            var serviceCards = new Map();
+
+            document.querySelectorAll('[data-service-card]').forEach(function (card) {
+                serviceCards.set(card.dataset.serviceKey, card);
+            });
+
+            var stateMeta = {
+                running: { label: 'En cours', stateClass: 'state-running', dotClass: 'is-on' },
+                waiting: { label: 'Terminé · en attente', stateClass: 'state-waiting', dotClass: 'is-waiting' },
+                stopped: { label: 'Arrêté', stateClass: 'state-stopped', dotClass: 'is-off' }
+            };
+
+            function plural(value, singular, pluralForm) {
+                return value + ' ' + (value > 1 ? pluralForm : singular);
+            }
+
+            function updateCard(status) {
+                var card = serviceCards.get(status.key);
+                if (!card) return;
+
+                var meta = stateMeta[status.state] || stateMeta.stopped;
+                var pill = card.querySelector('[data-role="service-status-pill"]');
+                var dot = card.querySelector('[data-role="service-dot"]');
+                var label = card.querySelector('[data-role="service-status-label"]');
+                var logCount = card.querySelector('[data-role="service-log-count"]');
+                var logLabel = card.querySelector('[data-role="service-log-label"]');
+                var count = Array.isArray(status.logs) ? status.logs.length : 0;
+
+                card.classList.remove('state-running', 'state-waiting', 'state-stopped');
+                card.classList.add(meta.stateClass);
+                card.dataset.state = status.state;
+
+                if (pill) {
+                    pill.classList.remove('state-running', 'state-waiting', 'state-stopped');
+                    pill.classList.add(meta.stateClass);
+                    pill.dataset.state = status.state;
+                }
+                if (dot) {
+                    dot.classList.remove('is-on', 'is-waiting', 'is-off');
+                    dot.classList.add(meta.dotClass);
+                }
+                if (label) label.textContent = meta.label;
+                if (logCount) logCount.textContent = count;
+                if (logLabel) logLabel.textContent = count > 1 ? 'journaux' : 'journal';
+
+                if (window.FlowOpsServiceTools) {
+                    window.FlowOpsServiceTools.syncStatus(status);
+                }
+            }
+
+            function updateOverall(total, running, waiting, stopped) {
+                var activityCount = running + waiting;
+                var rate = total === 0 ? 0 : Math.round(activityCount * 100 / total);
+                var stateClass = running > 0 ? 'state-running' : waiting > 0 ? 'state-waiting' : 'state-stopped';
+                var title;
+                var description;
+
+                if (total === 0) {
+                    title = 'Aucun service enregistré';
+                    description = 'Ajoutez votre premier service pour commencer la supervision.';
+                } else if (running > 0) {
+                    title = plural(running, 'service en cours', 'services en cours');
+                    description = activityCount + ' sur ' + total + ' service' + (total > 1 ? 's' : '') + ' sont en cours ou ont terminé leur dernière exécution.';
+                } else if (waiting > 0) {
+                    title = plural(waiting, 'traitement terminé', 'traitements terminés');
+                    description = activityCount + ' sur ' + total + ' service' + (total > 1 ? 's' : '') + ' ont terminé leur dernière exécution.';
+                } else {
+                    title = 'Tous les services sont arrêtés';
+                    description = 'Aucun traitement n\'est actuellement en cours.';
+                }
+
+                if (overallSummary) {
+                    overallSummary.classList.remove('state-running', 'state-waiting', 'state-stopped');
+                    overallSummary.classList.add(stateClass);
+                    overallSummary.dataset.state = stateClass.replace('state-', '');
+                }
+                if (overallTitle) overallTitle.textContent = title;
+                if (overallText) overallText.textContent = description;
+                if (overallRate) overallRate.textContent = rate + '%';
+                if (overallProgress) overallProgress.style.width = rate + '%';
+            }
+
+            function pollStats() {
+                fetch('/Worker/StatusAll')
+                    .then(function (r) { return r.json(); })
+                    .then(function (statuses) {
+                        var total = statuses.length;
+                        var running = statuses.filter(function (s) { return s.state === 'running'; }).length;
+                        var waiting = statuses.filter(function (s) { return s.state === 'waiting'; }).length;
+                        var stopped = statuses.filter(function (s) { return s.state === 'stopped'; }).length;
+
+                        elTotal.textContent = total;
+                        elRunning.textContent = running;
+                        elWaiting.textContent = waiting;
+                        elStopped.textContent = stopped;
+                        if (elListCount) elListCount.textContent = total;
+
+                        statuses.forEach(updateCard);
+                        updateOverall(total, running, waiting, stopped);
+                    })
+                    .catch(function () { /* Conserver le dernier état connu en cas d'erreur réseau. */ });
+            }
+
+            pollStats();
+            setInterval(pollStats, 2000);
+        })();
+    </script>
+}

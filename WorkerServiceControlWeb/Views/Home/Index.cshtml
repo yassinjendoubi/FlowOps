@@ -1,0 +1,148 @@
+@{
+    ViewData["Title"] = "FlowOps";
+}
+
+<div class="app-shell flowops-home-page">
+    <section class="flowops-hero surface-card" aria-labelledby="flowopsHeroTitle">
+        <div class="flowops-hero-content">
+            <p class="page-eyebrow">FlowOps — Centre de supervision</p>
+            <h1 id="flowopsHeroTitle">Une console claire pour des opérations maîtrisées.</h1>
+            <p class="flowops-hero-copy">
+                Supervisez vos worker services, déclenchez les actions utiles et consultez les informations techniques depuis un espace unifié.
+            </p>
+            <div class="flowops-hero-actions">
+                <a class="btn-app-primary hero-primary-action" asp-controller="Worker" asp-action="Index">
+                    <span>Ouvrir la supervision</span>
+                    <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M5 12h14M14 7l5 5-5 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                </a>
+                <a class="secondary-action hero-secondary-action" asp-controller="Worker" asp-action="Files">Explorer les fichiers</a>
+            </div>
+        </div>
+
+        <div class="flowops-hero-visual" aria-label="Aperçu des espaces FlowOps">
+            <div class="flowops-console-preview">
+                <div class="console-preview-header">
+                    <span class="console-preview-brand">
+                        <span class="console-preview-logo" aria-hidden="true">F</span>
+                        <span>Console opérationnelle</span>
+                    </span>
+                    <span class="console-preview-indicator">FlowOps</span>
+                </div>
+                <div class="console-preview-body">
+                    <div class="console-preview-nav" aria-hidden="true">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                    <div class="console-preview-content">
+                        <div class="console-preview-title">
+                            <span></span>
+                            <small></small>
+                        </div>
+                        <div class="console-preview-grid">
+                            <div>
+                                <span class="preview-card-icon preview-card-icon-services" aria-hidden="true"></span>
+                                <strong>Services</strong>
+                                <small>Pilotage centralisé</small>
+                            </div>
+                            <div>
+                                <span class="preview-card-icon preview-card-icon-logs" aria-hidden="true"></span>
+                                <strong>Journaux</strong>
+                                <small>Lecture en direct</small>
+                            </div>
+                            <div>
+                                <span class="preview-card-icon preview-card-icon-files" aria-hidden="true"></span>
+                                <strong>Fichiers</strong>
+                                <small>Exploration intégrée</small>
+                            </div>
+                        </div>
+                        <div class="console-preview-terminal" aria-hidden="true">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="flowops-capabilities" aria-labelledby="capabilitiesTitle">
+        <header class="section-heading">
+            <p class="page-eyebrow">Conçu pour l’exploitation</p>
+            <h2 id="capabilitiesTitle">L’essentiel, au bon endroit</h2>
+            <p>Chaque espace répond à une étape concrète de la supervision quotidienne.</p>
+        </header>
+
+        <div class="content-card-grid capability-card-grid">
+            <article class="surface-card capability-card">
+                <span class="capability-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="3" y="3" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.7" />
+                        <rect x="14" y="3" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.7" />
+                        <rect x="3" y="14" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.7" />
+                        <rect x="14" y="14" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.7" />
+                    </svg>
+                </span>
+                <span class="capability-index">01</span>
+                <h3>Superviser</h3>
+                <p>Visualisez l’état des services enregistrés et ouvrez leur espace de contrôle dédié.</p>
+                <a asp-controller="Worker" asp-action="Index">
+                    <span>Voir les services</span>
+                    <svg aria-hidden="true" viewBox="0 0 24 24" fill="none"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg>
+                </a>
+            </article>
+
+            <article class="surface-card capability-card">
+                <span class="capability-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" stroke-width="1.7" />
+                        <path d="M7 9l3 3-3 3M13 15h4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                </span>
+                <span class="capability-index">02</span>
+                <h3>Diagnostiquer</h3>
+                <p>Suivez les journaux d’exécution et repérez rapidement les événements à examiner.</p>
+                <a asp-controller="Worker" asp-action="Index">
+                    <span>Accéder aux journaux</span>
+                    <svg aria-hidden="true" viewBox="0 0 24 24" fill="none"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg>
+                </a>
+            </article>
+
+            <article class="surface-card capability-card">
+                <span class="capability-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" />
+                    </svg>
+                </span>
+                <span class="capability-index">03</span>
+                <h3>Explorer</h3>
+                <p>Parcourez les dossiers copiés et ouvrez les fichiers texte pris en charge par FlowOps.</p>
+                <a asp-controller="Worker" asp-action="Files">
+                    <span>Parcourir les fichiers</span>
+                    <svg aria-hidden="true" viewBox="0 0 24 24" fill="none"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg>
+                </a>
+            </article>
+        </div>
+    </section>
+
+    <section class="surface-card flowops-principle-card">
+        <span class="flowops-principle-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 3l8 4v5c0 4.7-3.2 7.5-8 9-4.8-1.5-8-4.3-8-9V7l8-4z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" />
+                <path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+        </span>
+        <div>
+            <p class="panel-eyebrow">Principe FlowOps</p>
+            <h2>Voir clairement. Agir sereinement.</h2>
+            <p>Les commandes sensibles restent visibles, explicites et adaptées au niveau d’accès de chaque utilisateur.</p>
+        </div>
+        @if (User.IsInRole("Admin"))
+        {
+            <a class="secondary-action" asp-controller="Admin" asp-action="Dashboard">Gérer les accès</a>
+        }
+    </section>
+</div>

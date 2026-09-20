@@ -1,0 +1,115 @@
+<div id="serviceToolsAntiforgery" class="d-none" aria-hidden="true">
+    @Html.AntiForgeryToken()
+</div>
+
+<div class="modal fade"
+     id="serviceHistoryModal"
+     tabindex="-1"
+     aria-labelledby="serviceHistoryModalTitle"
+     aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable modal-fullscreen-sm-down">
+        <div class="modal-content service-tools-modal service-history-modal">
+            <div class="modal-header service-tools-modal-header">
+                <div>
+                    <span class="modal-eyebrow">Tra&ccedil;abilit&eacute; op&eacute;rationnelle</span>
+                    <h2 class="modal-title" id="serviceHistoryModalTitle">Historique du service</h2>
+                    <p class="service-tools-modal-subtitle">
+                        <strong id="serviceHistoryServiceName">Service</strong>
+                        <span aria-hidden="true">&middot;</span>
+                        <span>D&eacute;marrages, traitements termin&eacute;s et arr&ecirc;ts</span>
+                    </p>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+            </div>
+
+            <div class="modal-body service-history-modal-body" id="serviceHistoryModalBody" aria-busy="false">
+                <p class="service-tool-state service-tool-loading" id="serviceHistoryModalLoading" hidden>
+                    Chargement de l'historique&hellip;
+                </p>
+                <p class="service-tool-state service-tool-error" id="serviceHistoryModalError" role="alert" hidden></p>
+                <div class="service-tool-state service-tool-empty" id="serviceHistoryModalEmpty" hidden>
+                    <span class="service-tool-empty-mark" aria-hidden="true">H</span>
+                    <strong>Aucun &eacute;v&eacute;nement enregistr&eacute;</strong>
+                    <span>Le prochain d&eacute;marrage appara&icirc;tra automatiquement dans cet historique.</span>
+                </div>
+                <ol class="service-history-list" id="serviceHistoryTimeline" aria-label="Historique complet du service"></ol>
+            </div>
+
+            <div class="modal-footer service-tools-modal-footer">
+                <span class="service-history-sync" id="serviceHistoryUpdatedAt" aria-live="polite"></span>
+                <button type="button" class="btn-app-secondary btn-danger-outline btn-auto" id="btnClearHistory">Supprimer l'historique</button>
+                <button type="button" class="btn-app-secondary btn-auto" data-bs-dismiss="modal">Fermer</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (User.IsInRole("Admin"))
+{
+    <div class="modal fade"
+         id="appSettingsModal"
+         tabindex="-1"
+         aria-labelledby="appSettingsModalTitle"
+         aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable modal-fullscreen-sm-down">
+            <form class="modal-content service-tools-modal appsettings-modal" id="appSettingsForm" novalidate>
+                <input type="hidden" id="appSettingsServiceKey" />
+                <input type="hidden" id="appSettingsExpectedVersion" />
+
+                <div class="modal-header service-tools-modal-header">
+                    <div>
+                        <span class="modal-eyebrow">Configuration du service</span>
+                        <h2 class="modal-title" id="appSettingsModalTitle">Modifier App settings</h2>
+                        <p class="service-tools-modal-subtitle">
+                            <strong id="appSettingsServiceName">Service</strong>
+                            <span aria-hidden="true">&middot;</span>
+                            <code id="appSettingsFileName">appsettings.json</code>
+                        </p>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+                </div>
+
+                <div class="modal-body appsettings-modal-body" id="appSettingsModalBody" aria-busy="false">
+                    <div class="appsettings-notice" id="appSettingsEditorHelp">
+                        <span class="appsettings-notice-mark" aria-hidden="true">i</span>
+                        <span>
+                            <strong>Application au prochain d&eacute;marrage</strong>
+                            <small>Les modifications sont enregistr&eacute;es dans le fichier du service. Ne partagez pas les valeurs sensibles.</small>
+                        </span>
+                    </div>
+
+                    <div class="appsettings-editor-shell">
+                        <div class="appsettings-editor-toolbar">
+                            <span class="appsettings-file-badge">JSON</span>
+                            <span class="appsettings-validation" id="appSettingsValidation" role="status">Chargement&hellip;</span>
+                            <div class="appsettings-editor-actions">
+                                <button type="button" class="btn-app-ghost btn-mini" id="btnReloadAppSettings" disabled>Recharger</button>
+                                <button type="button" class="btn-app-ghost btn-mini" id="btnFormatAppSettings" disabled>Formater</button>
+                            </div>
+                        </div>
+
+                        <label class="visually-hidden" for="appSettingsEditor">Contenu JSON du fichier appsettings.json</label>
+                        <textarea class="form-control appsettings-editor"
+                                  id="appSettingsEditor"
+                                  rows="18"
+                                  autocomplete="off"
+                                  autocapitalize="off"
+                                  spellcheck="false"
+                                  aria-describedby="appSettingsEditorHelp appSettingsValidation appSettingsFeedback"
+                                  disabled></textarea>
+                    </div>
+
+                    <div class="appsettings-feedback" id="appSettingsFeedback" role="status" aria-live="polite"></div>
+                </div>
+
+                <div class="modal-footer service-tools-modal-footer appsettings-modal-footer">
+                    <span class="appsettings-shortcut">Ctrl + S pour enregistrer</span>
+                    <button type="button" class="btn-app-ghost btn-auto" data-bs-dismiss="modal">Annuler</button>
+                    <button type="submit" class="btn-app-primary btn-auto" id="btnSaveAppSettings" disabled>
+                        Enregistrer les modifications
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+}
