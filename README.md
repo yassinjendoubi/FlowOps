@@ -36,7 +36,17 @@ Windows processes are launched and managed through Windows Task Scheduler.
 
 ## Screenshots
 
-Screenshots will be added here.
+### Dashboard
+
+![Dashboard](docs/dashboard.png)
+
+### Service Management
+
+![Service Management](docs/services.png)
+
+### Live Logs
+
+![Live Logs](docs/logs.png)
 
 ## Author
 
